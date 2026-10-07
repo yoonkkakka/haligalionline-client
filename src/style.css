@@ -1,10 +1,13 @@
 :root {
-  --bg: #0d0e16;
-  --panel: #1b1d29;
-  --accent: #ffd23f;
-  --text: #e8e9f5;
-  --muted: #8b8fb3;
-  color-scheme: dark;
+  --bg: #fff4de;
+  --panel: #ffffff;
+  --panel-border: #ffe2a8;
+  --accent: #ff8c42;
+  --accent-text: #3d2c1d;
+  --text: #3d2c1d;
+  --muted: #9a8569;
+  --input-bg: #fff8ec;
+  color-scheme: light;
 }
 
 * {
@@ -43,7 +46,9 @@ h1 {
 
 .panel {
   background: var(--panel);
-  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 4px 14px rgba(255, 140, 66, 0.12);
+  border-radius: 16px;
   padding: 24px;
   min-width: 320px;
   display: flex;
@@ -61,8 +66,8 @@ label {
 
 input,
 select {
-  background: #14161f;
-  border: 1px solid #33364a;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
   color: var(--text);
   padding: 8px 10px;
   border-radius: 6px;
@@ -71,7 +76,7 @@ select {
 
 button {
   background: var(--accent);
-  color: #14161f;
+  color: var(--accent-text);
   border: none;
   padding: 10px 16px;
   border-radius: 8px;
@@ -81,8 +86,9 @@ button {
 }
 
 button.secondary {
-  background: #33364a;
+  background: #fff1dc;
   color: var(--text);
+  border: 1px solid var(--panel-border);
 }
 
 button:disabled {
@@ -120,6 +126,7 @@ button:disabled {
   align-items: center;
   padding: 10px 16px;
   background: var(--panel);
+  border-bottom: 1px solid var(--panel-border);
   font-size: 13px;
   color: var(--muted);
 }
@@ -166,7 +173,8 @@ button:disabled {
   font-size: 12px;
   color: var(--muted);
   padding: 8px 16px;
-  background: #14161f;
+  background: var(--input-bg);
+  border-top: 1px solid var(--panel-border);
 }
 
 .chat-panel {
@@ -179,7 +187,8 @@ button:disabled {
 .chat-messages {
   height: 180px;
   overflow-y: auto;
-  background: #14161f;
+  background: var(--input-bg);
+  border: 1px solid var(--panel-border);
   border-radius: 6px;
   padding: 8px;
   font-size: 12px;

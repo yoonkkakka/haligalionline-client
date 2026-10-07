@@ -2,18 +2,21 @@
 // files, no licensing questions, fits the "자체개발 엔진" approach. A short
 // upbeat pentatonic loop (melody + simple root/fifth bass) scheduled with
 // a lookahead timer so it doesn't drift like a naive setInterval would.
+//
+// Timbre choices matter a lot here: a low-register square wave reads as an
+// alarm/horror-game drone, not "fun". Melody uses a soft triangle wave in a
+// bright, high-ish register and the bass uses a warm sine — both read as
+// cute/playful rather than ominous (confirmed against explicit user
+// feedback that an earlier square-wave/low-register version sounded scary).
 
 const NOTE_FREQS: Record<string, number> = {
   C3: 130.81,
-  E3: 164.81,
   G3: 196.0,
-  A3: 220.0,
-  C4: 261.63,
-  D4: 293.66,
-  E4: 329.63,
-  G4: 392.0,
-  A4: 440.0,
   C5: 523.25,
+  D5: 587.33,
+  E5: 659.25,
+  G5: 783.99,
+  A5: 880.0,
 };
 
 interface Step {
@@ -22,17 +25,17 @@ interface Step {
   dur: number; // seconds
 }
 
-// One bar of a cheerful C-major-pentatonic run, up and back down, with a
-// simple root/fifth bass underneath — repeats indefinitely.
+// One bar of a bright, bouncy C-major-pentatonic skip (up, little hop, back
+// down) with a warm root/fifth bass underneath — repeats indefinitely.
 const STEPS: Step[] = [
-  { melody: "C4", bass: "C3", dur: 0.22 },
-  { melody: "E4", bass: null, dur: 0.22 },
-  { melody: "G4", bass: null, dur: 0.22 },
-  { melody: "A4", bass: null, dur: 0.22 },
-  { melody: "G4", bass: "G3", dur: 0.22 },
-  { melody: "E4", bass: null, dur: 0.22 },
-  { melody: "D4", bass: null, dur: 0.22 },
-  { melody: "C4", bass: null, dur: 0.22 },
+  { melody: "C5", bass: "C3", dur: 0.18 },
+  { melody: "E5", bass: null, dur: 0.18 },
+  { melody: "G5", bass: null, dur: 0.18 },
+  { melody: "E5", bass: null, dur: 0.18 },
+  { melody: "A5", bass: "G3", dur: 0.18 },
+  { melody: "G5", bass: null, dur: 0.18 },
+  { melody: "E5", bass: null, dur: 0.18 },
+  { melody: "D5", bass: null, dur: 0.18 },
 ];
 
 const SCHEDULE_AHEAD = 0.2; // seconds
@@ -80,8 +83,8 @@ export class BackgroundMusic {
   };
 
   private playStep(step: Step, time: number) {
-    if (step.melody) this.pluck(step.melody, time, step.dur, "square", 0.6);
-    if (step.bass) this.pluck(step.bass, time, step.dur * 4, "triangle", 0.4);
+    if (step.melody) this.pluck(step.melody, time, step.dur, "triangle", 0.5);
+    if (step.bass) this.pluck(step.bass, time, step.dur * 4, "sine", 0.35);
   }
 
   private pluck(note: string, time: number, dur: number, type: OscillatorType, relativeVolume: number) {
@@ -92,10 +95,9 @@ export class BackgroundMusic {
     const envelope = this.ctx.createGain();
     osc.type = type;
     osc.frequency.value = freq;
-    // Quick attack, exponential decay — a plucked/chiptune feel rather than
-    // a harsh on/off square-wave click.
+    // Quick attack, exponential decay — a soft plucked/bell feel.
     envelope.gain.setValueAtTime(0, time);
-    envelope.gain.linearRampToValueAtTime(relativeVolume, time + 0.015);
+    envelope.gain.linearRampToValueAtTime(relativeVolume, time + 0.02);
     envelope.gain.exponentialRampToValueAtTime(0.0001, time + dur * 0.9);
     osc.connect(envelope);
     envelope.connect(this.gainNode);

@@ -39,8 +39,8 @@ function layoutPlayers(players: PlayerView[], width: number, height: number): Pl
 function drawCard(ctx: CanvasRenderingContext2D, x: number, y: number, faceUp: boolean, fruit?: string, count?: number) {
   ctx.save();
   ctx.translate(x - CARD_W / 2, y - CARD_H / 2);
-  ctx.fillStyle = faceUp ? "#fffaf0" : "#2d3142";
-  ctx.strokeStyle = "#1b1d29";
+  ctx.fillStyle = faceUp ? "#fffaf0" : "#ffb86b";
+  ctx.strokeStyle = "#8a5a2a";
   ctx.lineWidth = 2;
   const r = 8;
   ctx.beginPath();
@@ -67,12 +67,12 @@ function drawCard(ctx: CanvasRenderingContext2D, x: number, y: number, faceUp: b
         drawn++;
       }
     }
-    ctx.fillStyle = "#1b1d29";
+    ctx.fillStyle = "#4a3222";
     ctx.font = "bold 13px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(String(n), CARD_W / 2, 14);
   } else {
-    ctx.fillStyle = "#565b78";
+    ctx.fillStyle = "#fff5e6";
     ctx.font = "20px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("?", CARD_W / 2, CARD_H / 2 + 7);
@@ -88,7 +88,7 @@ export function renderMatch(
   yourId: string
 ): FlipHitbox[] {
   ctx.clearRect(0, 0, width, height);
-  ctx.fillStyle = "#14161f";
+  ctx.fillStyle = "#eaf6e0";
   ctx.fillRect(0, 0, width, height);
 
   const hitboxes: FlipHitbox[] = [];
@@ -99,16 +99,17 @@ export function renderMatch(
   ctx.save();
   ctx.beginPath();
   ctx.arc(bellX, bellY, view.bellAvailable ? 46 : 38, 0, Math.PI * 2);
-  ctx.fillStyle = view.bellAvailable ? "#ffd23f" : "#3a3d52";
+  ctx.fillStyle = view.bellAvailable ? "#ffd23f" : "#e8c27a";
   ctx.shadowColor = view.bellAvailable ? "#ffd23f" : "transparent";
   ctx.shadowBlur = view.bellAvailable ? 25 : 0;
   ctx.fill();
-  ctx.font = "28px sans-serif";
+  ctx.fillStyle = "#4a3222";
+  ctx.font = "bold 16px sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("bell", bellX, bellY + 6);
+  ctx.fillText("종", bellX, bellY + 6);
   ctx.restore();
 
-  ctx.fillStyle = "#c9cbe0";
+  ctx.fillStyle = "#6b5a45";
   ctx.font = "13px sans-serif";
   ctx.textAlign = "center";
   ctx.fillText(
@@ -120,11 +121,11 @@ export function renderMatch(
   for (const { player, cx, cy } of layouts) {
     const isTurn = view.currentPlayerId === player.id;
 
-    ctx.fillStyle = isTurn ? "#ffd23f" : "#c9cbe0";
+    ctx.fillStyle = isTurn ? "#ff6b35" : "#6b5a45";
     ctx.font = "bold 14px sans-serif";
     ctx.textAlign = "center";
     ctx.fillText(`${player.name}${isTurn ? " ▶" : ""}`, cx, cy - CARD_H / 2 - 40);
-    ctx.fillStyle = "#8b8fb3";
+    ctx.fillStyle = "#9a8569";
     ctx.font = "12px sans-serif";
     ctx.fillText(`남은 카드 ${player.totalCards}`, cx, cy - CARD_H / 2 - 22);
 
@@ -138,7 +139,7 @@ export function renderMatch(
     }
 
     if (player.topCard) {
-      ctx.fillStyle = "#8b8fb3";
+      ctx.fillStyle = "#9a8569";
       ctx.font = "11px sans-serif";
       ctx.fillText(FRUIT_LABEL[player.topCard.fruit], upX, cy + CARD_H / 2 + 16);
     }
