@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import * as api from "../api";
 import type { Profile } from "../api";
 import type { RuleMode } from "../game/deck";
@@ -17,6 +17,12 @@ const rule = ref<RuleMode>("classic");
 const bet = ref(100);
 const err = ref("");
 const queuing = ref(false);
+
+// Must match backend/app/config.py's MAX_BET_FRACTION — this is only a
+// client-side convenience (immediate feedback, no round trip); the server
+// is the actual enforcement point and re-checks this independently.
+const MAX_BET_FRACTION = 0.5;
+const maxBet = computed(() => Math.floor(props.profile.game_money * MAX_BET_FRACTION));
 
 const chatMessages = ref<ChatMessage[]>([]);
 const chatInput = ref("");
@@ -56,6 +62,10 @@ async function refill() {
 
 async function startQueue() {
   err.value = "";
+  if (bet.value > maxBet.value) {
+    err.value = `베팅은 보유 머니의 ${MAX_BET_FRACTION * 100}%(${maxBet.value})까지만 가능합니다`;
+    return;
+  }
   queuing.value = true;
   try {
     chat?.close();
@@ -94,7 +104,10 @@ async function logout() {
             <option value="extra">엑스트라 (3개)</option>
           </select>
         </label>
-        <label>베팅 금액 <input v-model.number="bet" type="number" min="0" /></label>
+        <label>
+          베팅 금액 (최대 {{ maxBet }})
+          <input v-model.number="bet" type="number" min="0" :max="maxBet" />
+        </label>
         <div class="error-text">{{ err }}</div>
         <button :disabled="queuing" @click="startQueue">{{ queuing ? "매칭 중..." : "매칭 시작" }}</button>
         <button class="secondary" @click="logout">로그아웃</button>

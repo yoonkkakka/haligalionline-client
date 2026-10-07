@@ -101,7 +101,11 @@ export class SinglePlayerMatch {
     if (player.faceDown.length === 0) return null;
     const card = player.faceDown.pop()!;
     player.faceUp.push(card);
-    this.bellAvailable = FRUITS.some((f) => this.visibleSum(f) >= this.target);
+    // Real Halli Galli rule: the bell is only correct at an EXACT match. If a
+    // sum overshoots the target (e.g. 3+3=6 when target is 5) before anyone
+    // rings, that opportunity is gone until some fruit's count resets via a
+    // ring — it does not stay ringable at ">= target" forever.
+    this.bellAvailable = FRUITS.some((f) => this.visibleSum(f) === this.target);
     this.advanceTurn();
     this.emit({ type: "state" });
     if (this.bellAvailable) this.scheduleBotRings();
