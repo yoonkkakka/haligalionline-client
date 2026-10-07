@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
+import { BackgroundMusic } from "../audio/BackgroundMusic";
 import { Engine } from "../engine/Engine";
 import type { RuleMode } from "../game/deck";
 import type { MatchView } from "../game/MatchView";
@@ -24,10 +25,20 @@ const finished = ref(false);
 const turnLabel = ref("진행중...");
 const yourId = props.mode === "single" ? "you" : props.yourId!;
 
+const MUTE_KEY = "hg_muted";
+const muted = ref(localStorage.getItem(MUTE_KEY) === "1");
+
 let engine: Engine | null = null;
 let single: SinglePlayerMatch | null = null;
 let online: OnlineMatch | null = null;
 let hitboxes: FlipHitbox[] = [];
+let music: BackgroundMusic | null = null;
+
+function toggleMute() {
+  muted.value = !muted.value;
+  localStorage.setItem(MUTE_KEY, muted.value ? "1" : "0");
+  music?.setMuted(muted.value);
+}
 
 function getView(): MatchView {
   return props.mode === "single" ? single!.toView() : online!.view;
@@ -61,10 +72,17 @@ function refreshHud() {
   }
 }
 
+// Keyboard shortcuts so the two core actions never require precise mouse
+// aim — flipping your own pile and ringing the bell were both originally
+// canvas-click-only, which is hard for anyone whose pointer control is
+// slow (explicit accessibility request).
 function keyHandler(e: KeyboardEvent) {
   if (e.code === "Space") {
     e.preventDefault();
     doRing();
+  } else if (e.code === "Enter") {
+    e.preventDefault();
+    doFlip();
   }
 }
 
@@ -104,6 +122,12 @@ onMounted(() => {
   });
   engine.start();
   window.addEventListener("keydown", keyHandler);
+
+  // Started here (inside the mount that follows a "시작"/"매칭 시작" click)
+  // so it counts as triggered by a user gesture — browsers block audio
+  // that starts with no click/keypress anywhere in its call stack.
+  music = new BackgroundMusic(muted.value);
+  music.start();
 });
 
 onUnmounted(() => {
@@ -111,6 +135,7 @@ onUnmounted(() => {
   engine?.destroy();
   single?.destroy();
   online?.destroy();
+  music?.stop();
 });
 </script>
 
@@ -118,9 +143,14 @@ onUnmounted(() => {
   <div class="game-screen">
     <div class="hud">
       <div>{{ turnLabel }}</div>
-      <button class="secondary" @click="emit('exit')">나가기</button>
+      <div class="hud-right">
+        <span class="shortcut-hint">Enter: 뒤집기 · Space: 종치기</span>
+        <button class="secondary mute-btn" @click="toggleMute">{{ muted ? "음소거됨" : "음악 끄기" }}</button>
+        <button class="secondary" @click="emit('exit')">나가기</button>
+      </div>
     </div>
     <div class="game-board" ref="boardEl">
+      <button class="flip-btn" :disabled="finished" @click="doFlip">뒤집기 (Enter)</button>
       <button class="ring-btn" :disabled="finished" @click="doRing">종치기 (Space)</button>
     </div>
     <div class="log-panel" ref="logEl">
