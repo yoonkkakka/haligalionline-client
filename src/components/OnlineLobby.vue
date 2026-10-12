@@ -10,6 +10,7 @@ const emit = defineEmits<{
   logout: [];
   matched: [cfg: { matchId: string; token: string; yourId: string }];
   refreshed: [profile: Profile];
+  shop: [];
 }>();
 
 const mode = ref<"2p" | "4p">("2p");
@@ -110,6 +111,7 @@ async function logout() {
         </label>
         <div class="error-text">{{ err }}</div>
         <button :disabled="queuing" @click="startQueue">{{ queuing ? "매칭 중..." : "매칭 시작" }}</button>
+        <button class="secondary" @click="emit('shop')">상점</button>
         <button class="secondary" @click="logout">로그아웃</button>
       </div>
       <div class="panel chat-panel">

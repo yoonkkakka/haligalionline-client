@@ -37,6 +37,8 @@ export async function joinMatchmaking(
 export type ServerMatchMessage =
   | { type: "state"; [key: string]: unknown }
   | { type: "ring_result"; correct: boolean; ringer: string; target: number }
+  | { type: "item_used"; profile_id: string; item_effect: string; [key: string]: unknown }
+  | { type: "auto_ring_triggered"; correct: boolean; ringer: string; target: number }
   | { type: "match_end"; winner_profile_id: string | null; pot: number }
   | { type: "error"; detail: string };
 
@@ -54,6 +56,10 @@ export class MatchConnection {
 
   ring() {
     this.ws.send(JSON.stringify({ type: "ring" }));
+  }
+
+  useItem(itemEffect: string, value?: Record<string, number>) {
+    this.ws.send(JSON.stringify({ type: "use_item", item_effect: itemEffect, value: value ?? {} }));
   }
 
   close() {

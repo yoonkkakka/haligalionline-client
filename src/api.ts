@@ -99,23 +99,43 @@ export interface ItemDef {
   name: string;
   image_base64: string;
   stat_bonus: Record<string, number>;
+  price: number;
   created_by: string;
   is_public: boolean;
+}
+
+export interface OwnedItemRow {
+  equipped: boolean;
+  item_id: string;
+  items: ItemDef;
 }
 
 export function listItems(): Promise<ItemDef[]> {
   return authedFetch("/items");
 }
 
-export function createItem(name: string, imageBase64: string, statBonus: Record<string, number>): Promise<ItemDef> {
+export function listMyItems(): Promise<OwnedItemRow[]> {
+  return authedFetch("/items/mine");
+}
+
+export function createItem(
+  name: string,
+  imageBase64: string,
+  statBonus: Record<string, number>,
+  price = 0
+): Promise<ItemDef> {
   return authedFetch("/items", {
     method: "POST",
-    body: JSON.stringify({ name, image_base64: imageBase64, stat_bonus: statBonus }),
+    body: JSON.stringify({ name, image_base64: imageBase64, stat_bonus: statBonus, price }),
   });
 }
 
 export function setEquipped(itemId: string, equipped: boolean) {
   return authedFetch(`/items/${itemId}/equip`, { method: "PATCH", body: JSON.stringify({ equipped }) });
+}
+
+export function buyItem(itemId: string): Promise<OwnedItemRow> {
+  return authedFetch(`/items/${itemId}/buy`, { method: "POST" });
 }
 
 export async function getAccessToken(): Promise<string> {

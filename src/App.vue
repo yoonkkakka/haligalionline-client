@@ -9,8 +9,17 @@ import GameBoard from "./components/GameBoard.vue";
 import OnlineLogin from "./components/OnlineLogin.vue";
 import ProfileSetup from "./components/ProfileSetup.vue";
 import OnlineLobby from "./components/OnlineLobby.vue";
+import Shop from "./components/Shop.vue";
 
-type Screen = "home" | "single-setup" | "single-game" | "online-login" | "profile-setup" | "lobby" | "online-game";
+type Screen =
+  | "home"
+  | "single-setup"
+  | "single-game"
+  | "online-login"
+  | "profile-setup"
+  | "lobby"
+  | "online-game"
+  | "shop";
 
 const screen = ref<Screen>("home");
 const profile = ref<Profile | null>(null);
@@ -82,6 +91,14 @@ function exitToLobby() {
     :profile="profile!"
     @logout="onLogout"
     @matched="onMatched"
+    @refreshed="onProfileRefreshed"
+    @shop="screen = 'shop'"
+  />
+
+  <Shop
+    v-else-if="screen === 'shop' && profile"
+    :profile="profile!"
+    @back="screen = 'lobby'"
     @refreshed="onProfileRefreshed"
   />
 

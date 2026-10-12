@@ -210,6 +210,7 @@ export class SinglePlayerMatch {
         faceDownCount: p.faceDown.length,
         topCard: this.topCard(p),
         totalCards: p.faceDown.length + p.faceUp.length,
+        availableItems: [], // single-player practice mode doesn't use the real shop economy
       })),
       currentPlayerId: this.finished ? null : this.currentPlayer.id,
       bellAvailable: this.bellAvailable,

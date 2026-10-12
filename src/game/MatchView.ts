@@ -9,6 +9,7 @@ export interface PlayerView {
   faceDownCount: number;
   topCard?: Card;
   totalCards: number;
+  availableItems: string[];
 }
 
 export interface MatchView {

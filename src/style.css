@@ -157,6 +157,34 @@ button:disabled {
   gap: 10px;
 }
 
+.item-tray {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 50%;
+}
+
+.item-btn {
+  font-size: 11px;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+
+.item-badge {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
 .shortcut-hint {
   font-size: 12px;
   color: var(--muted);

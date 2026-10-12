@@ -4,7 +4,7 @@ import { BackgroundMusic } from "../audio/BackgroundMusic";
 import { Engine } from "../engine/Engine";
 import type { RuleMode } from "../game/deck";
 import type { MatchView } from "../game/MatchView";
-import { OnlineMatch } from "../game/OnlineMatch";
+import { ITEM_EFFECT_LABEL, OnlineMatch } from "../game/OnlineMatch";
 import { FlipHitbox, hitTestBell, renderMatch } from "../game/Renderer";
 import { SinglePlayerMatch } from "../game/SinglePlayerMatch";
 
@@ -24,6 +24,8 @@ const log = ref<string[]>([]);
 const finished = ref(false);
 const turnLabel = ref("진행중...");
 const yourId = props.mode === "single" ? "you" : props.yourId!;
+const myItems = ref<string[]>([]);
+const itemLabel = ITEM_EFFECT_LABEL;
 
 const MUTE_KEY = "hg_muted";
 const muted = ref(localStorage.getItem(MUTE_KEY) === "1");
@@ -54,6 +56,10 @@ function doRing() {
   else online!.ring();
 }
 
+function doUseItem(effect: string, value?: Record<string, number>) {
+  if (props.mode === "online") online!.useItem(effect, value);
+}
+
 function pushLog(text: string) {
   log.value.push(text);
   requestAnimationFrame(() => {
@@ -70,6 +76,7 @@ function refreshHud() {
     const turnName = view.players.find((p) => p.id === view.currentPlayerId)?.name ?? "";
     turnLabel.value = `현재 턴: ${turnName}`;
   }
+  myItems.value = view.players.find((p) => p.id === yourId)?.availableItems ?? [];
 }
 
 // Keyboard shortcuts so the two core actions never require precise mouse
@@ -152,6 +159,22 @@ onUnmounted(() => {
     <div class="game-board" ref="boardEl">
       <button class="flip-btn" :disabled="finished" @click="doFlip">뒤집기 (Enter)</button>
       <button class="ring-btn" :disabled="finished" @click="doRing">종치기 (Space)</button>
+      <div class="item-tray" v-if="myItems.length">
+        <template v-for="effect in myItems" :key="effect">
+          <template v-if="effect === 'card_count_change'">
+            <button class="secondary item-btn" :disabled="finished" @click="doUseItem(effect, { delta: 1 })">
+              {{ itemLabel[effect] }} +1
+            </button>
+            <button class="secondary item-btn" :disabled="finished" @click="doUseItem(effect, { delta: -1 })">
+              {{ itemLabel[effect] }} -1
+            </button>
+          </template>
+          <button v-else-if="effect === 'mulligan'" class="secondary item-btn" :disabled="finished" @click="doUseItem(effect)">
+            {{ itemLabel[effect] }}
+          </button>
+          <span v-else class="item-badge">{{ itemLabel[effect] ?? effect }} (자동발동 대기)</span>
+        </template>
+      </div>
     </div>
     <div class="log-panel" ref="logEl">
       <div v-for="(line, i) in log" :key="i">{{ line }}</div>
