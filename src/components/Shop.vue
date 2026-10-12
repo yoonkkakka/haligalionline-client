@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import * as api from "../api";
-import type { ItemDef, Profile } from "../api";
+import type { ItemDef, OwnedItemRow, Profile } from "../api";
 
 const props = defineProps<{ profile: Profile }>();
 const emit = defineEmits<{ back: []; refreshed: [profile: Profile] }>();
@@ -9,10 +9,12 @@ const emit = defineEmits<{ back: []; refreshed: [profile: Profile] }>();
 const money = computed(() => props.profile.game_money);
 
 const items = ref<ItemDef[]>([]);
-const ownedIds = ref<Set<string>>(new Set());
+const myItems = ref<OwnedItemRow[]>([]);
+const ownedIds = computed(() => new Set(myItems.value.map((r) => r.item_id)));
 const loading = ref(true);
 const err = ref("");
 const buyingId = ref<string | null>(null);
+const equippingId = ref<string | null>(null);
 
 // Shop-purchasable = publicly listed items with a price set (price 0 means
 // "not for sale", e.g. an item someone uploaded only for themselves).
@@ -23,11 +25,23 @@ async function load() {
   try {
     const [all, mine] = await Promise.all([api.listItems(), api.listMyItems()]);
     items.value = all;
-    ownedIds.value = new Set(mine.map((r) => r.item_id));
+    myItems.value = mine;
   } catch (e: any) {
     err.value = e.message ?? String(e);
   } finally {
     loading.value = false;
+  }
+}
+
+async function toggleEquip(row: OwnedItemRow) {
+  equippingId.value = row.item_id;
+  try {
+    await api.setEquipped(row.item_id, !row.equipped);
+    row.equipped = !row.equipped;
+  } catch (e: any) {
+    err.value = e.message ?? String(e);
+  } finally {
+    equippingId.value = null;
   }
 }
 
@@ -38,7 +52,10 @@ async function buy(item: ItemDef) {
   buyingId.value = item.id;
   try {
     await api.buyItem(item.id);
-    ownedIds.value.add(item.id);
+    // Backend grants it unequipped (same as the free-upload path) — build
+    // the row locally rather than re-fetching, since we already have the
+    // full ItemDef from the shop listing.
+    myItems.value.push({ item_id: item.id, equipped: false, items: item });
     const updated = await api.getMyProfile();
     if (updated) emit("refreshed", updated);
   } catch (e: any) {
@@ -85,7 +102,7 @@ async function upload() {
     const statBonus: Record<string, number> = uploadSpeedBonus.value ? { speed: uploadSpeedBonus.value } : {};
     const created = await api.createItem(uploadName.value.trim(), dataUrl, statBonus, uploadPrice.value);
     items.value.unshift(created);
-    ownedIds.value.add(created.id); // uploading grants it to you for free, same as before
+    myItems.value.push({ item_id: created.id, equipped: false, items: created }); // uploading grants it to you for free, same as before
     uploadName.value = "";
     uploadFile.value = null;
     uploadPrice.value = 500;
@@ -127,6 +144,24 @@ async function upload() {
         <button class="secondary" @click="emit('back')">뒤로</button>
       </div>
 
+      <div class="panel" style="min-width: 220px">
+        <div>내 아이템 (장착 관리)</div>
+        <div v-if="myItems.length === 0" style="font-size: 13px; color: var(--muted)">
+          보유한 아이템이 없습니다
+        </div>
+        <div v-for="row in myItems" :key="row.item_id" class="owned-row">
+          <img :src="row.items.image_base64" :alt="row.items.name" class="owned-img" />
+          <div class="owned-name">{{ row.items.name }}</div>
+          <button
+            class="secondary"
+            :disabled="equippingId === row.item_id"
+            @click="toggleEquip(row)"
+          >
+            {{ row.equipped ? "장착 해제" : "장착" }}
+          </button>
+        </div>
+      </div>
+
       <div class="panel" style="min-width: 260px">
         <div>내 아이템 업로드</div>
         <label>이름 <input v-model="uploadName" /></label>
@@ -141,6 +176,23 @@ async function upload() {
 </template>
 
 <style scoped>
+.owned-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+.owned-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.owned-name {
+  flex: 1;
+  font-size: 12px;
+}
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

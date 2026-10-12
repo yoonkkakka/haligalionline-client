@@ -134,7 +134,11 @@ export function setEquipped(itemId: string, equipped: boolean) {
   return authedFetch(`/items/${itemId}/equip`, { method: "PATCH", body: JSON.stringify({ equipped }) });
 }
 
-export function buyItem(itemId: string): Promise<OwnedItemRow> {
+// Backend returns the raw inserted profile_items row ({profile_id,
+// item_id, equipped, acquired_at}, no joined item) — callers that already
+// have the ItemDef (e.g. from the shop listing) should build their own
+// OwnedItemRow locally rather than rely on this return shape.
+export function buyItem(itemId: string): Promise<{ item_id: string; equipped: boolean }> {
   return authedFetch(`/items/${itemId}/buy`, { method: "POST" });
 }
 
